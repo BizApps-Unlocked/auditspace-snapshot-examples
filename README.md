@@ -1,4 +1,3 @@
-
 ## Overview
 
 This repository contains console application samples demonstrating how to use the AuditSpace Snapshot feature to capture the state of Dataverse records at specific points in time. The snapshot functionality allows you to:
@@ -135,6 +134,99 @@ request.Parameters["unl_EventName"] = "Custom Process Completed";
 request.Parameters["unl_RecordId"] = "c1d2e3f4-a5b6-7890-1234-567890abcdef";
 request.Parameters["unl_TableLogicalName"] = "new_customtable";
 ```
+
+## Model-Driven Form Sample
+
+### Overview
+
+The model-driven form sample demonstrates how to call the `unl_AuditSpaceSnapshot` custom action from JavaScript on a Dynamics 365 / Dataverse model-driven form. This allows you to capture snapshots automatically when forms are loaded or based on user actions.
+
+**Location**: `src/model-driven-form/`
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `modeldrivenformsample.js` | JavaScript code that executes the snapshot action on form load |
+
+### Getting Started
+
+#### 1. Add the JavaScript Web Resource
+
+1. In Dynamics 365 / Dataverse, navigate to **Settings** > **Customizations** > **Customize the System**
+2. Select your table/entity
+3. Go to **Form** and select the form you want to customize
+4. In the form editor, select **Form Properties**
+5. Under the **Event Handlers** section on the **Events** tab:
+   - Add a new **OnLoad** event handler
+   - Select **modeldrivenformsample.js** as the web resource
+   - Ensure the handler is set to run for **All** events
+
+#### 2. Configure the Snapshot Parameters
+
+Edit `modeldrivenformsample.js` to customize the snapshot parameters:
+
+```javascript
+unl_TableLogicalName: entityName,        // Automatically retrieved from form context
+unl_RecordId: rowid,                     // Automatically retrieved from current record
+unl_EventName: "A Custom Snapshot From Form JS"  // Customize this event name
+```
+
+**Parameters**:
+- **unl_TableLogicalName**: The logical name of the table (automatically retrieved from form context)
+- **unl_RecordId**: The GUID of the current record (automatically retrieved from form context)
+- **unl_EventName**: A descriptive name for the snapshot event (customize as needed)
+
+#### 3. How It Works
+
+The sample JavaScript code:
+1. **Extracts form context** - Retrieves the current form's context on form load
+2. **Gets record information** - Automatically retrieves the record ID and entity name
+3. **Constructs the request** - Creates a properly formatted request for the `unl_AuditSpaceSnapshot` custom action
+4. **Executes the action** - Calls `Xrm.WebApi.execute()` to invoke the custom action
+5. **Handles responses** - Logs success or error messages to the browser console
+
+#### 4. Example Customizations
+
+**Example 1: Snapshot on Form Load with Custom Event Name**
+```javascript
+unl_EventName: "Contact Form Loaded"
+```
+
+**Example 2: Snapshot Before Form Save (Requires Additional Setup)**
+Update the form event handler to use the **OnSave** event instead:
+```javascript
+unl_EventName: "Contact Form Saved"
+```
+
+**Example 3: Add Custom Logic for Conditional Snapshots**
+```javascript
+if (formContext.getAttribute("status").getValue() === 1) {
+    execute_unl_AuditSpaceSnapshot_Request.unl_EventName = "Contact Activated";
+}
+```
+
+### Usage Scenarios
+
+The model-driven form sample is useful for:
+- **Automatic audit trails**: Capture snapshots whenever a form is opened or saved
+- **Compliance tracking**: Create event-driven snapshots at critical business moments
+- **User action triggers**: Combine with form buttons or ribbon commands to capture user-initiated snapshots
+- **Workflow integration**: Use with form scripts to trigger snapshots based on form data changes
+
+### Troubleshooting
+
+### Issue: "Xrm is not defined"
+**Solution**: Ensure the form has fully loaded before the script executes. The script should be registered on the form's **OnLoad** event.
+
+### Issue: "Custom action not found" or execution fails
+**Solution**:
+- Verify the AuditSpace solution is installed and the custom action is published
+- Check browser console (F12 Developer Tools) for detailed error messages
+- Ensure your user has permissions to execute the custom action
+
+### Issue: "Record ID is undefined"
+**Solution**: Ensure the script runs on an existing record (not a new form) where the record has been saved and has a GUID.
 
 ## Architecture and Key Components
 
